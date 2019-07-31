@@ -4,18 +4,18 @@ Middleware session provides session management for [Macaron](https://github.com/
 
 ### Installation
 
-The minimum requirement of Go is 1.6 (*1.7 if using Redis, 1.8 if using MySQL*).
+The minimum requirement of Go is 1.11 .
 
 	go get gitea.com/macaron/session
-	
+
 ## Getting Help
 
-- [API Reference](https://gowalker.org/github.com/go-macaron/session)
+- [API Reference](https://gowalker.org/gitea.com/macaron/session)
 - [Documentation](https://go-macaron.com/docs/middlewares/session)
 
 ## Credits
 
-This package is a modified version of [beego/session](https://github.com/astaxie/beego/tree/master/session).
+This package is a modified version of [go-macaron/session](github.com/go-macaron/session).
 
 ## License
 

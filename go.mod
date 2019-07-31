@@ -11,7 +11,6 @@ require (
 	github.com/cupcake/rdb v0.0.0-20161107195141-43ba34106c76 // indirect
 	github.com/edsrzf/mmap-go v1.0.0 // indirect
 	github.com/go-macaron/inject v0.0.0-20160627170012-d8a0b8677191 // indirect
-	github.com/go-macaron/session v0.0.0-20190131233854-0a0a789bf193
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/lib/pq v1.2.0

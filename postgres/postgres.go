@@ -24,7 +24,7 @@ import (
 
 	_ "github.com/lib/pq"
 
-	"github.com/go-macaron/session"
+	"gitea.com/macaron/session"
 )
 
 // PostgresStore represents a postgres session store implementation.

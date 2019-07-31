@@ -22,7 +22,7 @@ import (
 
 	"github.com/bradfitz/gomemcache/memcache"
 
-	"github.com/go-macaron/session"
+	"gitea.com/macaron/session"
 )
 
 // MemcacheStore represents a memcache session store implementation.

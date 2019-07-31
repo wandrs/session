@@ -23,7 +23,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"gopkg.in/macaron.v1"
 
-	"github.com/go-macaron/session"
+	"gitea.com/macaron/session"
 )
 
 func Test_MysqlProvider(t *testing.T) {
