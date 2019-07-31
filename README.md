@@ -1,4 +1,4 @@
-# session [![Build Status](https://travis-ci.org/go-macaron/session.svg?branch=master)](https://travis-ci.org/go-macaron/session)
+# session
 
 Middleware session provides session management for [Macaron](https://github.com/go-macaron/macaron). It can use many session providers, including memory, file, Redis, Memcache, PostgreSQL, MySQL, Couchbase, Ledis and Nodb.
 
@@ -6,7 +6,7 @@ Middleware session provides session management for [Macaron](https://github.com/
 
 The minimum requirement of Go is 1.6 (*1.7 if using Redis, 1.8 if using MySQL*).
 
-	go get github.com/go-macaron/session
+	go get gitea.com/macaron/session
 	
 ## Getting Help
 
