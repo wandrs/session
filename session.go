@@ -54,8 +54,8 @@ type Store interface {
 	RawStore
 	// Read returns raw session store by session ID.
 	Read(string) (RawStore, error)
-	// Destory deletes a session.
-	Destory(*macaron.Context) error
+	// Destroy deletes a session.
+	Destroy(*macaron.Context) error
 	// RegenerateId regenerates a session store from old session ID to new one.
 	RegenerateId(*macaron.Context) (RawStore, error)
 	// Count counts and returns number of sessions.
@@ -209,8 +209,8 @@ type Provider interface {
 	Read(sid string) (RawStore, error)
 	// Exist returns true if session with given ID exists.
 	Exist(sid string) bool
-	// Destory deletes a session by session ID.
-	Destory(sid string) error
+	// Destroy deletes a session by session ID.
+	Destroy(sid string) error
 	// Regenerate regenerates a session store from old session ID to new one.
 	Regenerate(oldsid, sid string) (RawStore, error)
 	// Count counts and returns number of sessions.
@@ -318,8 +318,8 @@ func (m *Manager) Read(sid string) (RawStore, error) {
 	return m.provider.Read(sid)
 }
 
-// Destory deletes a session by given ID.
-func (m *Manager) Destory(ctx *macaron.Context) error {
+// Destroy deletes a session by given ID.
+func (m *Manager) Destroy(ctx *macaron.Context) error {
 	sid := ctx.GetCookie(m.opt.CookieName)
 	if len(sid) == 0 {
 		return nil
@@ -329,7 +329,7 @@ func (m *Manager) Destory(ctx *macaron.Context) error {
 		return err
 	}
 
-	if err := m.provider.Destory(sid); err != nil {
+	if err := m.provider.Destroy(sid); err != nil {
 		return err
 	}
 	cookie := &http.Cookie{

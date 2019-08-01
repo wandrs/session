@@ -186,8 +186,8 @@ func (p *RedisProvider) Exist(sid string) bool {
 	return err == nil && v == 1
 }
 
-// Destory deletes a session by session ID.
-func (p *RedisProvider) Destory(sid string) error {
+// Destroy deletes a session by session ID.
+func (p *RedisProvider) Destroy(sid string) error {
 	return p.c.Del(p.prefix + sid).Err()
 }
 
