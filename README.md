@@ -1,6 +1,6 @@
 # session
 
-Middleware session provides session management for [Macaron](https://github.com/go-macaron/macaron). It can use many session providers, including memory, file, Redis, Memcache, PostgreSQL, MySQL, Couchbase, Ledis and Nodb.
+Middleware session provides session management for [Macaron](https://gitea.com/macaron/macaron). It can use many session providers, including memory, file, Redis, Memcache, PostgreSQL, MySQL, Couchbase, Ledis and Nodb.
 
 ### Installation
 

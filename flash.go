@@ -17,7 +17,7 @@ package session
 import (
 	"net/url"
 
-	"gopkg.in/macaron.v1"
+	"gitea.com/macaron/macaron"
 )
 
 type Flash struct {

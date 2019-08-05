@@ -21,8 +21,8 @@ import (
 	"testing"
 	"time"
 
+	"gitea.com/macaron/macaron"
 	. "github.com/smartystreets/goconvey/convey"
-	"gopkg.in/macaron.v1"
 )
 
 func Test_Version(t *testing.T) {

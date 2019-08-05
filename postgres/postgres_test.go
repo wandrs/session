@@ -20,10 +20,9 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/smartystreets/goconvey/convey"
-	"gopkg.in/macaron.v1"
-
+	"gitea.com/macaron/macaron"
 	"gitea.com/macaron/session"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func Test_PostgresProvider(t *testing.T) {

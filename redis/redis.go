@@ -21,11 +21,10 @@ import (
 	"sync"
 	"time"
 
+	"gitea.com/macaron/session"
 	"github.com/Unknwon/com"
 	"github.com/go-redis/redis"
 	"gopkg.in/ini.v1"
-
-	"gitea.com/macaron/session"
 )
 
 // RedisStore represents a redis session store implementation.

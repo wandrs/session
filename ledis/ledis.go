@@ -20,12 +20,11 @@ import (
 	"strings"
 	"sync"
 
+	"gitea.com/macaron/session"
 	"github.com/Unknwon/com"
 	"github.com/siddontang/ledisdb/config"
 	"github.com/siddontang/ledisdb/ledis"
 	"gopkg.in/ini.v1"
-
-	"gitea.com/macaron/session"
 )
 
 // LedisStore represents a ledis session store implementation.

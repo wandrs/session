@@ -20,9 +20,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/bradfitz/gomemcache/memcache"
-
 	"gitea.com/macaron/session"
+	"github.com/bradfitz/gomemcache/memcache"
 )
 
 // MemcacheStore represents a memcache session store implementation.

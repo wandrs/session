@@ -22,9 +22,8 @@ import (
 	"sync"
 	"time"
 
-	_ "github.com/lib/pq"
-
 	"gitea.com/macaron/session"
+	_ "github.com/lib/pq"
 )
 
 // PostgresStore represents a postgres session store implementation.
