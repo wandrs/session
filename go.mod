@@ -3,8 +3,7 @@ module gitea.com/macaron/session
 go 1.11
 
 require (
-	gitea.com/macaron/macaron v1.3.3-0.20190803174002-53e005ff4827
-	github.com/Unknwon/com v0.0.0-20190321035513-0fed4efef755
+	gitea.com/macaron/macaron v1.3.3-0.20190821202302-9646c0587edb
 	github.com/bradfitz/gomemcache v0.0.0-20190329173943-551aad21a668
 	github.com/couchbase/gomemcached v0.0.0-20190515232915-c4b4ca0eb21d // indirect
 	github.com/couchbase/goutils v0.0.0-20190315194238-f9d42b11473b // indirect
@@ -26,6 +25,7 @@ require (
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337
 	github.com/stretchr/testify v1.3.0 // indirect
 	github.com/syndtr/goleveldb v1.0.0 // indirect
+	github.com/unknwon/com v0.0.0-20190804042917-757f69c95f3e
 	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80 // indirect
 	google.golang.org/appengine v1.6.1 // indirect
 	gopkg.in/ini.v1 v1.44.0

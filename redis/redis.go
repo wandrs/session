@@ -22,8 +22,8 @@ import (
 	"time"
 
 	"gitea.com/macaron/session"
-	"github.com/Unknwon/com"
 	"github.com/go-redis/redis"
+	"github.com/unknwon/com"
 	"gopkg.in/ini.v1"
 )
 
