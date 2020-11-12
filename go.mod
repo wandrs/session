@@ -4,7 +4,7 @@ go 1.11
 
 require (
 	gitea.com/lunny/nodb v0.0.0-20200923032308-3238c4655727
-	gitea.com/macaron/macaron v1.5.0
+	gitea.com/macaron/macaron v1.5.1-0.20201027213641-0db5d4584804
 	github.com/bradfitz/gomemcache v0.0.0-20190329173943-551aad21a668
 	github.com/couchbase/go-couchbase v0.0.0-20201026062457-7b3be89bbd89
 	github.com/couchbase/gomemcached v0.1.0 // indirect
