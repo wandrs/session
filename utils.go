@@ -35,6 +35,7 @@ func init() {
 	gob.Register(map[int]int64{})
 }
 
+// EncodeGob encodes obj with gob
 func EncodeGob(obj map[interface{}]interface{}) ([]byte, error) {
 	for _, v := range obj {
 		gob.Register(v)
@@ -44,6 +45,7 @@ func EncodeGob(obj map[interface{}]interface{}) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
+// DecodeGob decodes bytes to obj
 func DecodeGob(encoded []byte) (out map[interface{}]interface{}, err error) {
 	buf := bytes.NewBuffer(encoded)
 	err = gob.NewDecoder(buf).Decode(&out)

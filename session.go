@@ -26,10 +26,11 @@ import (
 	"time"
 )
 
-const _VERSION = "0.6.0"
+const version = "0.7.0"
 
+// Version returns the version
 func Version() string {
-	return _VERSION
+	return version
 }
 
 // RawStore is the interface that operates the session data.
@@ -55,8 +56,8 @@ type Store interface {
 	Read(string) (RawStore, error)
 	// Destroy deletes a session.
 	Destroy(http.ResponseWriter, *http.Request) error
-	// RegenerateId regenerates a session store from old session ID to new one.
-	RegenerateId(http.ResponseWriter, *http.Request) (RawStore, error)
+	// RegenerateID regenerates a session store from old session ID to new one.
+	RegenerateID(http.ResponseWriter, *http.Request) (RawStore, error)
 	// Count counts and returns number of sessions.
 	Count() int
 	// GC calls GC to clean expired sessions.
@@ -249,7 +250,7 @@ func Sessioner(options ...Options) func(next http.Handler) http.Handler {
 				Manager:  manager,
 			}
 
-			req = req.WithContext(context.WithValue(req.Context(), "Session", &s))
+			req = req.WithContext(context.WithValue(req.Context(), interface{}("Session"), &s))
 
 			next.ServeHTTP(w, req)
 
@@ -333,7 +334,7 @@ func (m *Manager) sessionID() string {
 // validSessionID tests whether a provided session ID is a valid session ID.
 func (m *Manager) validSessionID(sid string) (bool, error) {
 	if len(sid) != m.opt.IDLength {
-		return false, errors.New("invalid 'sid': " + sid)
+		return false, fmt.Errorf("invalid 'sid': %s %d != %d", sid, len(sid), m.opt.IDLength)
 	}
 
 	for i := range sid {
@@ -414,8 +415,8 @@ func (m *Manager) Destroy(resp http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
-// RegenerateId regenerates a session store from old session ID to new one.
-func (m *Manager) RegenerateId(resp http.ResponseWriter, req *http.Request) (sess RawStore, err error) {
+// RegenerateID regenerates a session store from old session ID to new one.
+func (m *Manager) RegenerateID(resp http.ResponseWriter, req *http.Request) (sess RawStore, err error) {
 	sid := m.sessionID()
 	oldsid := GetCookie(req, m.opt.CookieName)
 	_, err = m.validSessionID(oldsid)

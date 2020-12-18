@@ -84,7 +84,7 @@ func testProvider(opt Options) {
 		})
 		c.Get("/reg", func(resp http.ResponseWriter, req *http.Request) {
 			sess := GetSession(req)
-			raw, err := sess.RegenerateId(resp, req)
+			raw, err := sess.RegenerateID(resp, req)
 			So(err, ShouldBeNil)
 			So(raw, ShouldNotBeNil)
 
@@ -138,7 +138,7 @@ func testProvider(opt Options) {
 		c.Use(Sessioner(opt))
 		c.Get("/", func(resp http.ResponseWriter, req *http.Request) {
 			sess := GetSession(req)
-			raw, err := sess.RegenerateId(resp, req)
+			raw, err := sess.RegenerateID(resp, req)
 			So(err, ShouldBeNil)
 			So(raw, ShouldNotBeNil)
 		})

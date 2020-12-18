@@ -71,7 +71,7 @@ func (s *MemStore) ID() string {
 }
 
 // Release releases resource and save data to provider.
-func (_ *MemStore) Release() error {
+func (*MemStore) Release() error {
 	return nil
 }
 

@@ -41,7 +41,7 @@ func Test_LedisProvider(t *testing.T) {
 			})
 			c.Get("/reg", func(resp http.ResponseWriter, req *http.Request) {
 				sess := session.GetSession(req)
-				raw, err := sess.RegenerateId(resp, req)
+				raw, err := sess.RegenerateID(resp, req)
 				So(err, ShouldBeNil)
 				So(raw, ShouldNotBeNil)
 
@@ -92,7 +92,7 @@ func Test_LedisProvider(t *testing.T) {
 			Convey("Regenrate empty session", func() {
 				c.Get("/empty", func(resp http.ResponseWriter, req *http.Request) {
 					sess := session.GetSession(req)
-					raw, err := sess.RegenerateId(resp, req)
+					raw, err := sess.RegenerateID(resp, req)
 					So(err, ShouldBeNil)
 					So(raw, ShouldNotBeNil)
 				})
