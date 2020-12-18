@@ -19,8 +19,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"gitea.com/macaron/macaron"
-	"gitea.com/macaron/session"
+	"gitea.com/go-chi/session"
+	"github.com/go-chi/chi"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -32,14 +32,16 @@ func Test_LedisProvider(t *testing.T) {
 		}
 
 		Convey("Basic operation", func() {
-			m := macaron.New()
-			m.Use(session.Sessioner(opt))
+			c := chi.NewRouter()
+			c.Use(session.Sessioner(opt))
 
-			m.Get("/", func(ctx *macaron.Context, sess session.Store) {
+			c.Get("/", func(resp http.ResponseWriter, req *http.Request) {
+				sess := session.GetSession(req)
 				sess.Set("uname", "unknwon")
 			})
-			m.Get("/reg", func(ctx *macaron.Context, sess session.Store) {
-				raw, err := sess.RegenerateId(ctx)
+			c.Get("/reg", func(resp http.ResponseWriter, req *http.Request) {
+				sess := session.GetSession(req)
+				raw, err := sess.RegenerateId(resp, req)
 				So(err, ShouldBeNil)
 				So(raw, ShouldNotBeNil)
 
@@ -47,7 +49,8 @@ func Test_LedisProvider(t *testing.T) {
 				So(uname, ShouldNotBeNil)
 				So(uname, ShouldEqual, "unknwon")
 			})
-			m.Get("/get", func(ctx *macaron.Context, sess session.Store) {
+			c.Get("/get", func(resp http.ResponseWriter, req *http.Request) {
+				sess := session.GetSession(req)
 				sid := sess.ID()
 				So(sid, ShouldNotBeEmpty)
 
@@ -62,13 +65,13 @@ func Test_LedisProvider(t *testing.T) {
 				So(sess.Delete("uname"), ShouldBeNil)
 				So(sess.Get("uname"), ShouldBeNil)
 
-				So(sess.Destroy(ctx), ShouldBeNil)
+				So(sess.Destroy(resp, req), ShouldBeNil)
 			})
 
 			resp := httptest.NewRecorder()
 			req, err := http.NewRequest("GET", "/", nil)
 			So(err, ShouldBeNil)
-			m.ServeHTTP(resp, req)
+			c.ServeHTTP(resp, req)
 
 			cookie := resp.Header().Get("Set-Cookie")
 
@@ -76,7 +79,7 @@ func Test_LedisProvider(t *testing.T) {
 			req, err = http.NewRequest("GET", "/reg", nil)
 			So(err, ShouldBeNil)
 			req.Header.Set("Cookie", cookie)
-			m.ServeHTTP(resp, req)
+			c.ServeHTTP(resp, req)
 
 			cookie = resp.Header().Get("Set-Cookie")
 
@@ -84,11 +87,12 @@ func Test_LedisProvider(t *testing.T) {
 			req, err = http.NewRequest("GET", "/get", nil)
 			So(err, ShouldBeNil)
 			req.Header.Set("Cookie", cookie)
-			m.ServeHTTP(resp, req)
+			c.ServeHTTP(resp, req)
 
 			Convey("Regenrate empty session", func() {
-				m.Get("/empty", func(ctx *macaron.Context, sess session.Store) {
-					raw, err := sess.RegenerateId(ctx)
+				c.Get("/empty", func(resp http.ResponseWriter, req *http.Request) {
+					sess := session.GetSession(req)
+					raw, err := sess.RegenerateId(resp, req)
 					So(err, ShouldBeNil)
 					So(raw, ShouldNotBeNil)
 				})
@@ -97,7 +101,7 @@ func Test_LedisProvider(t *testing.T) {
 				req, err = http.NewRequest("GET", "/empty", nil)
 				So(err, ShouldBeNil)
 				req.Header.Set("Cookie", "MacaronSession=ad2c7e3cbecfcf486; Path=/;")
-				m.ServeHTTP(resp, req)
+				c.ServeHTTP(resp, req)
 			})
 		})
 	})

@@ -17,16 +17,13 @@
 package session
 
 import (
+	"context"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
 	"time"
-
-	"gitea.com/macaron/macaron"
-	"gitea.com/macaron/macaron/cookie"
 )
 
 const _VERSION = "0.6.0"
@@ -57,9 +54,9 @@ type Store interface {
 	// Read returns raw session store by session ID.
 	Read(string) (RawStore, error)
 	// Destroy deletes a session.
-	Destroy(*macaron.Context) error
+	Destroy(http.ResponseWriter, *http.Request) error
 	// RegenerateId regenerates a session store from old session ID to new one.
-	RegenerateId(*macaron.Context) (RawStore, error)
+	RegenerateId(http.ResponseWriter, *http.Request) (RawStore, error)
 	// Count counts and returns number of sessions.
 	Count() int
 	// GC calls GC to clean expired sessions.
@@ -97,8 +94,6 @@ type Options struct {
 	Domain string
 	// Session ID length. Default is 16.
 	IDLength int
-	// Configuration section name. Default is "session".
-	Section string
 	// Ignore release for websocket. Default is false.
 	IgnoreReleaseForWebSocket bool
 	// FlashEncryptionKey sets the encryption key for flash messages
@@ -110,49 +105,33 @@ func prepareOptions(options []Options) Options {
 	if len(options) > 0 {
 		opt = options[0]
 	}
-	if len(opt.Section) == 0 {
-		opt.Section = "session"
-	}
-	sec := macaron.Config().Section(opt.Section)
 
 	if len(opt.Provider) == 0 {
-		opt.Provider = sec.Key("PROVIDER").MustString("memory")
+		opt.Provider = "memory"
 	}
 	if len(opt.ProviderConfig) == 0 {
-		opt.ProviderConfig = sec.Key("PROVIDER_CONFIG").MustString("data/sessions")
+		opt.ProviderConfig = "data/sessions"
 	}
 	if len(opt.CookieName) == 0 {
-		opt.CookieName = sec.Key("COOKIE_NAME").MustString("MacaronSession")
+		opt.CookieName = "MacaronSession"
 	}
 	if len(opt.CookiePath) == 0 {
-		opt.CookiePath = sec.Key("COOKIE_PATH").MustString("/")
+		opt.CookiePath = "/"
 	}
 	if opt.Gclifetime == 0 {
-		opt.Gclifetime = sec.Key("GC_INTERVAL_TIME").MustInt64(3600)
+		opt.Gclifetime = 3600
 	}
 	if opt.Maxlifetime == 0 {
-		opt.Maxlifetime = sec.Key("MAX_LIFE_TIME").MustInt64(opt.Gclifetime)
+		opt.Maxlifetime = opt.Gclifetime
 	}
 	if !opt.Secure {
-		opt.Secure = sec.Key("SECURE").MustBool()
-	}
-	if opt.CookieLifeTime == 0 {
-		opt.CookieLifeTime = sec.Key("COOKIE_LIFE_TIME").MustInt()
-	}
-	if opt.SameSite == 0 {
-		opt.SameSite = http.SameSite(sec.Key("SAME_SITE").MustInt())
-	}
-	if len(opt.Domain) == 0 {
-		opt.Domain = sec.Key("DOMAIN").String()
+		opt.Secure = false
 	}
 	if opt.IDLength == 0 {
-		opt.IDLength = sec.Key("ID_LENGTH").MustInt(16)
-	}
-	if !opt.IgnoreReleaseForWebSocket {
-		opt.IgnoreReleaseForWebSocket = sec.Key("IGNORE_RELEASE_FOR_WEBSOCKET").MustBool()
+		opt.IDLength = 16
 	}
 	if len(opt.FlashEncryptionKey) == 0 {
-		opt.FlashEncryptionKey = sec.Key("FLASH_ENCRYPTION_KEY").MustString("")
+		opt.FlashEncryptionKey = ""
 	}
 	if len(opt.FlashEncryptionKey) == 0 {
 		opt.FlashEncryptionKey, _ = NewSecret()
@@ -161,9 +140,96 @@ func prepareOptions(options []Options) Options {
 	return opt
 }
 
+// GetCookie returns given cookie value from request header.
+func GetCookie(req *http.Request, name string) string {
+	cookie, err := req.Cookie(name)
+	if err != nil {
+		return ""
+	}
+	val, _ := url.QueryUnescape(cookie.Value)
+	return val
+}
+
+// NewCookie creates cookie via given params and value.
+// FIXME: IE support? http://golanghome.com/post/620#reply2
+func NewCookie(name string, value string, others ...interface{}) *http.Cookie {
+	cookie := http.Cookie{}
+	cookie.Name = name
+	cookie.Value = url.QueryEscape(value)
+
+	if len(others) > 0 {
+		switch v := others[0].(type) {
+		case int:
+			cookie.MaxAge = v
+		case int64:
+			cookie.MaxAge = int(v)
+		case int32:
+			cookie.MaxAge = int(v)
+		case func(*http.Cookie):
+			v(&cookie)
+		}
+	}
+
+	cookie.Path = "/"
+	if len(others) > 1 {
+		if v, ok := others[1].(string); ok && len(v) > 0 {
+			cookie.Path = v
+		} else if v, ok := others[1].(func(*http.Cookie)); ok {
+			v(&cookie)
+		}
+	}
+
+	if len(others) > 2 {
+		if v, ok := others[2].(string); ok && len(v) > 0 {
+			cookie.Domain = v
+		} else if v, ok := others[1].(func(*http.Cookie)); ok {
+			v(&cookie)
+		}
+	}
+
+	if len(others) > 3 {
+		switch v := others[3].(type) {
+		case bool:
+			cookie.Secure = v
+		case func(*http.Cookie):
+			v(&cookie)
+		default:
+			if others[3] != nil {
+				cookie.Secure = true
+			}
+		}
+	}
+
+	if len(others) > 4 {
+		if v, ok := others[4].(bool); ok && v {
+			cookie.HttpOnly = true
+		} else if v, ok := others[1].(func(*http.Cookie)); ok {
+			v(&cookie)
+		}
+	}
+
+	if len(others) > 5 {
+		if v, ok := others[5].(time.Time); ok {
+			cookie.Expires = v
+			cookie.RawExpires = v.Format(time.UnixDate)
+		} else if v, ok := others[1].(func(*http.Cookie)); ok {
+			v(&cookie)
+		}
+	}
+
+	if len(others) > 6 {
+		for _, other := range others[6:] {
+			if v, ok := other.(func(*http.Cookie)); ok {
+				v(&cookie)
+			}
+		}
+	}
+	return &cookie
+}
+
 // Sessioner is a middleware that maps a session.SessionStore service into the Macaron handler chain.
 // An single variadic session.Options struct can be optionally provided to configure.
-func Sessioner(options ...Options) macaron.Handler {
+func Sessioner(options ...Options) func(next http.Handler) http.Handler {
 	opt := prepareOptions(options)
 	manager, err := NewManager(opt.Provider, opt)
 	if err != nil {
@@ -171,69 +237,38 @@ func Sessioner(options ...Options) macaron.Handler {
 	}
 	go manager.startGC()
 
-	return func(ctx *macaron.Context) {
-		sess, err := manager.Start(ctx)
-		if err != nil {
-			panic("session(start): " + err.Error())
-		}
-
-		// Get flash.
-		flashCookie := ctx.GetCookie("macaron_flash")
-		decrypted, _ := DecryptSecret(opt.FlashEncryptionKey, flashCookie)
-		vals, _ := url.ParseQuery(decrypted)
-		if len(vals) > 0 {
-			f := &Flash{Values: vals}
-			f.ErrorMsg = f.Get("error")
-			f.SuccessMsg = f.Get("success")
-			f.InfoMsg = f.Get("info")
-			f.WarningMsg = f.Get("warning")
-			t, _ := strconv.ParseInt(f.Get("time"), 10, 64)
-			now := time.Now().Unix()
-			if now-t > 0 && now-t < 3600 {
-				ctx.Data["Flash"] = f
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			sess, err := manager.Start(w, req)
+			if err != nil {
+				panic("session(start): " + err.Error())
 			}
-		}
-		if len(flashCookie) > 0 {
-			ctx.SetCookie("macaron_flash", "", -1, opt.CookiePath,
-				cookie.Domain(opt.Domain),
-				cookie.HTTPOnly(true),
-				cookie.Secure(opt.Secure),
-				cookie.SameSite(opt.SameSite))
-		}
 
-		f := &Flash{ctx, url.Values{}, "", "", "", ""}
-		ctx.Resp.Before(func(macaron.ResponseWriter) {
-			f.Set("time", strconv.FormatInt(time.Now().Unix(), 10))
-			if flash := f.Encode(); len(flash) > 0 {
-				encrypted, err := EncryptSecret(opt.FlashEncryptionKey, flash)
-				if err == nil {
-					ctx.SetCookie("macaron_flash", encrypted, 0, opt.CookiePath,
-						cookie.Domain(opt.Domain),
-						cookie.HTTPOnly(true),
-						cookie.Secure(opt.Secure),
-						cookie.SameSite(opt.SameSite))
-				}
+			var s = store{
+				RawStore: sess,
+				Manager:  manager,
+			}
+
+			req = req.WithContext(context.WithValue(req.Context(), "Session", &s))
+
+			next.ServeHTTP(w, req)
+
+			if manager.opt.IgnoreReleaseForWebSocket && req.Header.Get("Upgrade") == "websocket" {
+				return
+			}
+
+			if err = sess.Release(); err != nil {
+				panic("session(release): " + err.Error())
 			}
 		})
-
-		ctx.Map(f)
-		s := store{
-			RawStore: sess,
-			Manager:  manager,
-		}
-
-		ctx.MapTo(s, (*Store)(nil))
-
-		ctx.Next()
-
-		if manager.opt.IgnoreReleaseForWebSocket && ctx.Req.Header.Get("Upgrade") == "websocket" {
-			return
-		}
-
-		if err = sess.Release(); err != nil {
-			panic("session(release): " + err.Error())
-		}
 	}
+}
+
+// GetSession returns session store
+func GetSession(req *http.Request) Store {
+	sessCtx := req.Context().Value("Session")
+	sess, _ := sessCtx.(*store)
+	return sess
 }
 
 // Provider is the interface that provides session manipulations.
@@ -314,8 +349,8 @@ func (m *Manager) validSessionID(sid string) (bool, error) {
 
 // Start starts a session by generating new one
 // or retrieve existence one by reading session ID from HTTP request if it's valid.
-func (m *Manager) Start(ctx *macaron.Context) (RawStore, error) {
-	sid := ctx.GetCookie(m.opt.CookieName)
+func (m *Manager) Start(resp http.ResponseWriter, req *http.Request) (RawStore, error) {
+	sid := GetCookie(req, m.opt.CookieName)
 	valid, _ := m.validSessionID(sid)
 	if len(sid) > 0 && valid && m.provider.Exist(sid) {
 		return m.provider.Read(sid)
@@ -339,8 +374,8 @@ func (m *Manager) Start(ctx *macaron.Context) (RawStore, error) {
 	if m.opt.CookieLifeTime >= 0 {
 		cookie.MaxAge = m.opt.CookieLifeTime
 	}
-	http.SetCookie(ctx.Resp, cookie)
-	ctx.Req.AddCookie(cookie)
+	http.SetCookie(resp, cookie)
+	req.AddCookie(cookie)
 	return sess, nil
 }
 
@@ -355,8 +390,8 @@ func (m *Manager) Read(sid string) (RawStore, error) {
 }
 
 // Destroy deletes a session by given ID.
-func (m *Manager) Destroy(ctx *macaron.Context) error {
-	sid := ctx.GetCookie(m.opt.CookieName)
+func (m *Manager) Destroy(resp http.ResponseWriter, req *http.Request) error {
+	sid := GetCookie(req, m.opt.CookieName)
 	if len(sid) == 0 {
 		return nil
 	}
@@ -375,14 +410,14 @@ func (m *Manager) Destroy(ctx *macaron.Context) error {
 		Expires:  time.Now(),
 		MaxAge:   -1,
 	}
-	http.SetCookie(ctx.Resp, cookie)
+	http.SetCookie(resp, cookie)
 	return nil
 }
 
 // RegenerateId regenerates a session store from old session ID to new one.
-func (m *Manager) RegenerateId(ctx *macaron.Context) (sess RawStore, err error) {
+func (m *Manager) RegenerateId(resp http.ResponseWriter, req *http.Request) (sess RawStore, err error) {
 	sid := m.sessionID()
-	oldsid := ctx.GetCookie(m.opt.CookieName)
+	oldsid := GetCookie(req, m.opt.CookieName)
 	_, err = m.validSessionID(oldsid)
 	if err != nil {
 		return nil, err
@@ -403,8 +438,8 @@ func (m *Manager) RegenerateId(ctx *macaron.Context) (sess RawStore, err error) 
 	if m.opt.CookieLifeTime >= 0 {
 		cookie.MaxAge = m.opt.CookieLifeTime
 	}
-	http.SetCookie(ctx.Resp, cookie)
-	ctx.Req.AddCookie(cookie)
+	http.SetCookie(resp, cookie)
+	req.AddCookie(cookie)
 	return sess, nil
 }
 

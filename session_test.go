@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	"gitea.com/macaron/macaron"
+	"github.com/go-chi/chi"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -33,14 +33,14 @@ func Test_Version(t *testing.T) {
 
 func Test_Sessioner(t *testing.T) {
 	Convey("Use session middleware", t, func() {
-		m := macaron.New()
-		m.Use(Sessioner())
-		m.Get("/", func() {})
+		c := chi.NewRouter()
+		c.Use(Sessioner())
+		c.Get("/", func(resp http.ResponseWriter, req *http.Request) {})
 
 		resp := httptest.NewRecorder()
 		req, err := http.NewRequest("GET", "/", nil)
 		So(err, ShouldBeNil)
-		m.ServeHTTP(resp, req)
+		c.ServeHTTP(resp, req)
 	})
 
 	Convey("Register invalid provider", t, func() {
@@ -49,8 +49,8 @@ func Test_Sessioner(t *testing.T) {
 				So(recover(), ShouldNotBeNil)
 			}()
 
-			m := macaron.New()
-			m.Use(Sessioner(Options{
+			c := chi.NewRouter()
+			c.Use(Sessioner(Options{
 				Provider: "fake",
 			}))
 		})
@@ -75,14 +75,16 @@ func Test_Sessioner(t *testing.T) {
 
 func testProvider(opt Options) {
 	Convey("Basic operation", func() {
-		m := macaron.New()
-		m.Use(Sessioner(opt))
+		c := chi.NewRouter()
+		c.Use(Sessioner(opt))
 
-		m.Get("/", func(ctx *macaron.Context, sess Store) {
+		c.Get("/", func(resp http.ResponseWriter, req *http.Request) {
+			sess := GetSession(req)
 			sess.Set("uname", "unknwon")
 		})
-		m.Get("/reg", func(ctx *macaron.Context, sess Store) {
-			raw, err := sess.RegenerateId(ctx)
+		c.Get("/reg", func(resp http.ResponseWriter, req *http.Request) {
+			sess := GetSession(req)
+			raw, err := sess.RegenerateId(resp, req)
 			So(err, ShouldBeNil)
 			So(raw, ShouldNotBeNil)
 
@@ -90,7 +92,8 @@ func testProvider(opt Options) {
 			So(uname, ShouldNotBeNil)
 			So(uname, ShouldEqual, "unknwon")
 		})
-		m.Get("/get", func(ctx *macaron.Context, sess Store) {
+		c.Get("/get", func(resp http.ResponseWriter, req *http.Request) {
+			sess := GetSession(req)
 			sid := sess.ID()
 			So(sid, ShouldNotBeEmpty)
 
@@ -105,13 +108,13 @@ func testProvider(opt Options) {
 			So(sess.Delete("uname"), ShouldBeNil)
 			So(sess.Get("uname"), ShouldBeNil)
 
-			So(sess.Destroy(ctx), ShouldBeNil)
+			So(sess.Destroy(resp, req), ShouldBeNil)
 		})
 
 		resp := httptest.NewRecorder()
 		req, err := http.NewRequest("GET", "/", nil)
 		So(err, ShouldBeNil)
-		m.ServeHTTP(resp, req)
+		c.ServeHTTP(resp, req)
 
 		cookie := resp.Header().Get("Set-Cookie")
 
@@ -119,7 +122,7 @@ func testProvider(opt Options) {
 		req, err = http.NewRequest("GET", "/reg", nil)
 		So(err, ShouldBeNil)
 		req.Header.Set("Cookie", cookie)
-		m.ServeHTTP(resp, req)
+		c.ServeHTTP(resp, req)
 
 		cookie = resp.Header().Get("Set-Cookie")
 
@@ -127,14 +130,15 @@ func testProvider(opt Options) {
 		req, err = http.NewRequest("GET", "/get", nil)
 		So(err, ShouldBeNil)
 		req.Header.Set("Cookie", cookie)
-		m.ServeHTTP(resp, req)
+		c.ServeHTTP(resp, req)
 	})
 
 	Convey("Regenrate empty session", func() {
-		m := macaron.New()
-		m.Use(Sessioner(opt))
-		m.Get("/", func(ctx *macaron.Context, sess Store) {
-			raw, err := sess.RegenerateId(ctx)
+		c := chi.NewRouter()
+		c.Use(Sessioner(opt))
+		c.Get("/", func(resp http.ResponseWriter, req *http.Request) {
+			sess := GetSession(req)
+			raw, err := sess.RegenerateId(resp, req)
 			So(err, ShouldBeNil)
 			So(raw, ShouldNotBeNil)
 		})
@@ -143,16 +147,17 @@ func testProvider(opt Options) {
 		req, err := http.NewRequest("GET", "/", nil)
 		So(err, ShouldBeNil)
 		req.Header.Set("Cookie", "MacaronSession=ad2c7e3cbecfcf48; Path=/;")
-		m.ServeHTTP(resp, req)
+		c.ServeHTTP(resp, req)
 	})
 
 	Convey("GC session", func() {
-		m := macaron.New()
+		c := chi.NewRouter()
 		opt2 := opt
 		opt2.Gclifetime = 1
-		m.Use(Sessioner(opt2))
+		c.Use(Sessioner(opt2))
 
-		m.Get("/", func(sess Store) {
+		c.Get("/", func(resp http.ResponseWriter, req *http.Request) {
+			sess := GetSession(req)
 			sess.Set("uname", "unknwon")
 			So(sess.ID(), ShouldNotBeEmpty)
 			uname := sess.Get("uname")
@@ -170,13 +175,14 @@ func testProvider(opt Options) {
 		resp := httptest.NewRecorder()
 		req, err := http.NewRequest("GET", "/", nil)
 		So(err, ShouldBeNil)
-		m.ServeHTTP(resp, req)
+		c.ServeHTTP(resp, req)
 	})
 
 	Convey("Detect invalid sid", func() {
-		m := macaron.New()
-		m.Use(Sessioner(opt))
-		m.Get("/", func(ctx *macaron.Context, sess Store) {
+		c := chi.NewRouter()
+		c.Use(Sessioner(opt))
+		c.Get("/", func(resp http.ResponseWriter, req *http.Request) {
+			sess := GetSession(req)
 			raw, err := sess.Read("../session/ad2c7e3cbecfcf486")
 			So(strings.Contains(err.Error(), "invalid 'sid': "), ShouldBeTrue)
 			So(raw, ShouldBeNil)
@@ -185,6 +191,6 @@ func testProvider(opt Options) {
 		resp := httptest.NewRecorder()
 		req, err := http.NewRequest("GET", "/", nil)
 		So(err, ShouldBeNil)
-		m.ServeHTTP(resp, req)
+		c.ServeHTTP(resp, req)
 	})
 }

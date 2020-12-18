@@ -1,17 +1,12 @@
-# session
+# Session
 
-Middleware session provides session management for [Macaron](https://gitea.com/macaron/macaron). It can use many session providers, including memory, file, Redis, Memcache, PostgreSQL, MySQL, Couchbase, Ledis and Nodb.
+Middleware session provides session management which copied from [Macaron Session](https://gitea.com/go-chi/session) for [go-chi](https://github.com/go-chi/chi). It can use many session providers, including memory, file, Redis, Memcache, PostgreSQL, MySQL, Couchbase, Ledis and Nodb.
 
-### Installation
+## Installation
 
-The minimum requirement of Go is 1.11 .
-
-	go get gitea.com/macaron/session
-
-## Getting Help
-
-- [API Reference](https://gowalker.org/gitea.com/macaron/session)
-- [Documentation](https://go-macaron.com/docs/middlewares/session)
+```
+go get gitea.com/go-chi/session
+```
 
 ## Credits
 

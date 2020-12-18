@@ -20,7 +20,7 @@ import (
 	"strings"
 	"sync"
 
-	"gitea.com/macaron/session"
+	"gitea.com/go-chi/session"
 	"github.com/bradfitz/gomemcache/memcache"
 )
 

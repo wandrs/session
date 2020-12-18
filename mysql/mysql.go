@@ -22,7 +22,7 @@ import (
 	"sync"
 	"time"
 
-	"gitea.com/macaron/session"
+	"gitea.com/go-chi/session"
 	_ "github.com/go-sql-driver/mysql"
 )
 

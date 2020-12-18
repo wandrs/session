@@ -19,7 +19,7 @@ import (
 	"strings"
 	"sync"
 
-	"gitea.com/macaron/session"
+	"gitea.com/go-chi/session"
 	"github.com/couchbase/go-couchbase"
 )
 
