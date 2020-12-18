@@ -25,12 +25,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func Test_Version(t *testing.T) {
-	Convey("Check package version", t, func() {
-		So(Version(), ShouldEqual, _VERSION)
-	})
-}
-
 func Test_Sessioner(t *testing.T) {
 	Convey("Use session middleware", t, func() {
 		c := chi.NewRouter()
