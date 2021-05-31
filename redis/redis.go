@@ -22,9 +22,9 @@ import (
 	"sync"
 	"time"
 
-	"gitea.com/go-chi/session"
 	"github.com/go-redis/redis/v8"
 	"github.com/unknwon/com"
+	"go.wandrs.dev/session"
 	"gopkg.in/ini.v1"
 )
 

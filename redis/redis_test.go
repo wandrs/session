@@ -19,9 +19,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"gitea.com/go-chi/session"
 	"github.com/go-chi/chi"
 	. "github.com/smartystreets/goconvey/convey"
+	"go.wandrs.dev/session"
 )
 
 func Test_RedisProvider(t *testing.T) {

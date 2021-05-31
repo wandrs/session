@@ -22,8 +22,8 @@ import (
 	"sync"
 	"time"
 
-	"gitea.com/go-chi/session"
 	_ "github.com/go-sql-driver/mysql"
+	"go.wandrs.dev/session"
 )
 
 // MysqlStore represents a mysql session store implementation.

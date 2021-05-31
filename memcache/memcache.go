@@ -20,8 +20,8 @@ import (
 	"strings"
 	"sync"
 
-	"gitea.com/go-chi/session"
 	"github.com/bradfitz/gomemcache/memcache"
+	"go.wandrs.dev/session"
 )
 
 // MemcacheStore represents a memcache session store implementation.

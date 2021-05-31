@@ -19,8 +19,8 @@ import (
 	"strings"
 	"sync"
 
-	"gitea.com/go-chi/session"
 	"github.com/couchbase/go-couchbase"
+	"go.wandrs.dev/session"
 )
 
 // CouchbaseSessionStore represents a couchbase session store implementation.
