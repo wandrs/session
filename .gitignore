@@ -1,4 +1,4 @@
 ledis/tmp.db
 nodb/tmp.db
-/vendor
+vendor
 /.idea

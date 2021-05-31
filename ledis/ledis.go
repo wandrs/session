@@ -20,10 +20,10 @@ import (
 	"strings"
 	"sync"
 
-	"gitea.com/go-chi/session"
-	"github.com/siddontang/ledisdb/config"
-	"github.com/siddontang/ledisdb/ledis"
+	"github.com/ledisdb/ledisdb/config"
+	"github.com/ledisdb/ledisdb/ledis"
 	"github.com/unknwon/com"
+	"go.wandrs.dev/session"
 	"gopkg.in/ini.v1"
 )
 

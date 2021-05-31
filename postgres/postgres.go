@@ -22,8 +22,8 @@ import (
 	"sync"
 	"time"
 
-	"gitea.com/go-chi/session"
 	_ "github.com/lib/pq"
+	"go.wandrs.dev/session"
 )
 
 // PostgresStore represents a postgres session store implementation.
