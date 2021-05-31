@@ -2,7 +2,7 @@
 
 [![PkgGoDev](https://pkg.go.dev/badge/go.wandrs.dev/session)](https://pkg.go.dev/go.wandrs.dev/session)
 
-Middleware session provides session management which copied from [Macaron Session](https://github.com/go-macaron/session) for [go-chi](https://github.com/go-chi/chi). It can use many session providers, including memory, file, Redis, Memcache, PostgreSQL, MySQL, Couchbase, Ledis and Nodb.
+Middleware session provides session management which copied from [Macaron Session](https://github.com/go-macaron/session) for [go-chi](https://github.com/go-chi/chi/v5). It can use many session providers, including memory, file, Redis, Memcache, PostgreSQL, MySQL, Couchbase, Ledis and Nodb.
 
 ## Installation
 
