@@ -246,7 +246,7 @@ func Sessioner(options ...Options) func(next http.Handler) http.Handler {
 				panic("session(start): " + err.Error())
 			}
 
-			var s = store{
+			s := store{
 				RawStore: sess,
 				Manager:  manager,
 			}
